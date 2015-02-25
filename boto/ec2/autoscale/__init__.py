@@ -37,6 +37,8 @@ from boto.ec2.autoscale.launchconfig import LaunchConfiguration
 from boto.ec2.autoscale.group import AutoScalingGroup
 from boto.ec2.autoscale.group import ProcessType
 from boto.ec2.autoscale.activity import Activity
+from boto.ec2.autoscale.lifecycle import LifecycleHook
+from boto.ec2.autoscale.lifecycle import LifecycleHookTypes
 from boto.ec2.autoscale.policy import AdjustmentType
 from boto.ec2.autoscale.policy import MetricCollectionTypes
 from boto.ec2.autoscale.policy import ScalingPolicy
@@ -879,6 +881,36 @@ class AutoScaleConnection(AWSQueryConnection):
                   'LifecycleActionToken': action_token}
 
         return self.get_status('RecordLifecycleActionHeartbeat', params)
+
+    def get_lifecycle_hook_types(self):
+        """Gets all valid types of lifecycle hooks.
+
+        These values can then be used as the lifecycle_transition arg
+        when creating and updating lifecycle hooks.
+        """
+        return self.get_object('DescribeLifecycleHookTypes',
+                               {}, LifecycleHookTypes)
+
+    def get_lifecycle_hooks(self, autoscale_group, hook_names=None):
+        """
+        Describes the lifecycle hooks for the specified Auto Scaling group.
+
+        :type autoscale_group: str or
+            :class:`boto.ec2.autoscale.group.AutoScalingGroup` object
+        :param autoscale_group: The Auto Scaling group to put the lifecycle hook on.
+
+        """
+
+        asg_name = autoscale_group
+        if isinstance(autoscale_group, AutoScalingGroup):
+            asg_name = autoscale_group.name
+
+        params = {'AutoScalingGroupName': asg_name}
+        if hook_names:
+            self.build_list_params(params, hook_names, 'LifecycleHookNames')
+
+        return self.get_list('DescribeLifecycleHooks', params,
+                             [('member', LifecycleHook)])
 
     def delete_notification_configuration(self, autoscale_group, topic):
         """
