@@ -912,5 +912,42 @@ class TestGetLifecycleHooks(AWSMockServiceTestCase):
         self.assertEqual(hooks[1].role_arn, 'arn:aws:iam::111111111111:role/myRole')
         self.assertEqual(hooks[1].heartbeat_timeout, 7200)
 
+class TestPutLifecycleHook(AWSMockServiceTestCase):
+    connection_class = AutoScaleConnection
+
+    def setUp(self):
+        super(TestPutLifecycleHook, self).setUp()
+
+    def default_body(self):
+        return b"""
+          <PutLifecycleHookResponse>
+            <PutLifecycleHookResult/>
+            <ResponseMetadata>
+              <RequestId>requestid</RequestId>
+            </ResponseMetadata>
+          </PutLifecycleHookResponse>
+        """
+
+    def test_autoscaling_group_put_lifecycle_hook(self):
+        self.set_http_response(status_code=200)
+        self.service_connection.put_lifecycle_hook("myAutoscalingGroup",
+            "launching", default_result='ABANDON', heartbeat_timeout=3600,
+            lifecycle_transition="autoscaling:EC2_INSTANCE_LAUNCHING",
+            notification_metadata="launching meta data",
+            notification_target_arn='arn:aws:sqs:us-east-1:111111111111:myQueue',
+            role_arn='arn:aws:iam::111111111111:role/myRole')
+
+        self.assert_request_parameters({
+            'Action': 'PutLifecycleHook',
+            'AutoScalingGroupName': 'myAutoscalingGroup',
+            'DefaultResult': 'ABANDON',
+            'HeartbeatTimeout': 3600,
+            'LifecycleHookName': 'launching',
+            'LifecycleTransition': 'autoscaling:EC2_INSTANCE_LAUNCHING',
+            'NotificationMetadata': 'launching meta data',
+            'NotificationTargetARN': 'arn:aws:sqs:us-east-1:111111111111:myQueue',
+            'RoleARN': 'arn:aws:iam::111111111111:role/myRole',
+        }, ignore_params_values=['Version'])
+
 if __name__ == '__main__':
     unittest.main()
