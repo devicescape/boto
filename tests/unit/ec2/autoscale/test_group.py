@@ -949,5 +949,32 @@ class TestPutLifecycleHook(AWSMockServiceTestCase):
             'RoleARN': 'arn:aws:iam::111111111111:role/myRole',
         }, ignore_params_values=['Version'])
 
+class TestDeleteLifecycleHook(AWSMockServiceTestCase):
+    connection_class = AutoScaleConnection
+
+    def setUp(self):
+        super(TestDeleteLifecycleHook, self).setUp()
+
+    def default_body(self):
+        return b"""
+          <DeleteLifecycleHookResponse>
+            <DeleteLifecycleHookResult/>
+            <ResponseMetadata>
+              <RequestId>requestid</RequestId>
+            </ResponseMetadata>
+          </DeleteLifecycleHookResponse>
+        """
+
+    def test_autoscaling_group_delete_lifecycle_hook(self):
+        self.set_http_response(status_code=200)
+        self.service_connection.delete_lifecycle_hook("myAutoscalingGroup",
+            "launching")
+
+        self.assert_request_parameters({
+            'Action': 'DeleteLifecycleHook',
+            'AutoScalingGroupName': 'myAutoscalingGroup',
+            'LifecycleHookName': 'launching',
+        }, ignore_params_values=['Version'])
+
 if __name__ == '__main__':
     unittest.main()
