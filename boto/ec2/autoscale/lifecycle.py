@@ -41,7 +41,7 @@ class LifecycleHook(object):
         if name == 'GlobalTimeout':
             self.global_timeout = int(value)
         elif name == 'NotificationMetadata':
-            self.autoscaling_group_arn = value
+            self.notification_metadata = value
         elif name == 'LifecycleTransition':
             self.lifecycle_transition = value
         elif name == 'AutoScalingGroupName':
@@ -55,6 +55,6 @@ class LifecycleHook(object):
         elif name == 'RoleARN':
             self.role_arn = value
         elif name == 'HeartbeatTimeout':
-            self.heartbeat_timeout = value
+            self.heartbeat_timeout = int(value)
         else:
             setattr(self, name, value)

@@ -813,6 +813,104 @@ class TestLaunchConfigurationDescribeWithBlockDeviceTypes(AWSMockServiceTestCase
             'LaunchConfigurationNames.member.2': 'my-test2'
         }, ignore_params_values=['Version'])
 
+class TestGetLifecycleHookTypes(AWSMockServiceTestCase):
+    connection_class = AutoScaleConnection
+
+    def setUp(self):
+        super(TestGetLifecycleHookTypes, self).setUp()
+
+    def default_body(self):
+        return b"""
+            <DescribeLifecycleHookTypesResponse>
+              <DescribeLifecycleHookTypesResult>
+                <LifecycleHookTypes>
+                  <member>autoscaling:EC2_INSTANCE_LAUNCHING</member>
+                  <member>autoscaling:EC2_INSTANCE_TERMINATING</member>
+                </LifecycleHookTypes>
+              </DescribeLifecycleHookTypesResult>
+              <ResponseMetadata>
+                <RequestId>requestid</RequestId>
+              </ResponseMetadata>
+            </DescribeLifecycleHookTypesResponse>
+        """
+
+    def test_autoscaling_group_get_lifecycle_hook_types(self):
+        self.set_http_response(status_code=200)
+        types = self.service_connection.get_lifecycle_hook_types()
+        self.assert_request_parameters({
+            'Action': 'DescribeLifecycleHookTypes',
+        }, ignore_params_values=['Version'])
+        self.assertEqual(len(types), 2)
+        self.assertEqual('autoscaling:EC2_INSTANCE_LAUNCHING' in set(types), True)
+        self.assertEqual('autoscaling:EC2_INSTANCE_TERMINATING' in set(types), True)
+
+class TestGetLifecycleHooks(AWSMockServiceTestCase):
+    connection_class = AutoScaleConnection
+
+    def setUp(self):
+        super(TestGetLifecycleHooks, self).setUp()
+
+    def default_body(self):
+        return b"""
+           <DescribeLifecycleHooksResponse>
+             <DescribeLifecycleHooksResult>
+               <LifecycleHooks>
+                 <member>
+                   <GlobalTimeout>172800</GlobalTimeout>
+                   <NotificationMetadata>launch meta data</NotificationMetadata>
+                   <LifecycleTransition>autoscaling:EC2_INSTANCE_LAUNCHING</LifecycleTransition>
+                   <AutoScalingGroupName>myAutoscalingGroup</AutoScalingGroupName>
+                   <NotificationTargetARN>arn:aws:sqs:us-east-1:111111111111:myQueue</NotificationTargetARN>
+                   <DefaultResult>ABANDON</DefaultResult>
+                   <LifecycleHookName>launching</LifecycleHookName>
+                   <RoleARN>arn:aws:iam::111111111111:role/myRole</RoleARN>
+                   <HeartbeatTimeout>3600</HeartbeatTimeout>
+                 </member>
+                 <member>
+                   <GlobalTimeout>172800</GlobalTimeout>
+                   <NotificationMetadata>terminate meta data</NotificationMetadata>
+                   <LifecycleTransition>autoscaling:EC2_INSTANCE_TERMINATING</LifecycleTransition>
+                   <AutoScalingGroupName>myAutoscalingGroup</AutoScalingGroupName>
+                   <NotificationTargetARN>arn:aws:sqs:us-east-1:111111111111:myQueue</NotificationTargetARN>
+                   <DefaultResult>CONTINUE</DefaultResult>
+                   <LifecycleHookName>launching</LifecycleHookName>
+                   <RoleARN>arn:aws:iam::111111111111:role/myRole</RoleARN>
+                   <HeartbeatTimeout>7200</HeartbeatTimeout>
+                 </member>
+               </LifecycleHooks>
+             </DescribeLifecycleHooksResult>
+             <ResponseMetadata>
+               <RequestId>requestid</RequestId>
+             </ResponseMetadata>
+           </DescribeLifecycleHooksResponse>
+        """
+
+    def test_autoscaling_group_get_lifecycle_hook_types(self):
+        self.set_http_response(status_code=200)
+        hooks = self.service_connection.get_lifecycle_hooks('myAutoscalingGroup')
+        self.assert_request_parameters({
+            'Action': 'DescribeLifecycleHooks',
+            'AutoScalingGroupName': 'myAutoscalingGroup',
+        }, ignore_params_values=['Version'])
+        self.assertEqual(len(hooks), 2)
+        self.assertEqual(hooks[0].global_timeout, 172800)
+        self.assertEqual(hooks[0].notification_metadata, 'launch meta data')
+        self.assertEqual(hooks[0].lifecycle_transition, 'autoscaling:EC2_INSTANCE_LAUNCHING')
+        self.assertEqual(hooks[0].asg_name, 'myAutoscalingGroup')
+        self.assertEqual(hooks[0].default_result, 'ABANDON')
+        self.assertEqual(hooks[0].notification_target_arn, 'arn:aws:sqs:us-east-1:111111111111:myQueue')
+        self.assertEqual(hooks[0].name, 'launching')
+        self.assertEqual(hooks[0].role_arn, 'arn:aws:iam::111111111111:role/myRole')
+        self.assertEqual(hooks[0].heartbeat_timeout, 3600)
+        self.assertEqual(hooks[1].global_timeout, 172800)
+        self.assertEqual(hooks[1].notification_metadata, 'terminate meta data')
+        self.assertEqual(hooks[1].lifecycle_transition, 'autoscaling:EC2_INSTANCE_TERMINATING')
+        self.assertEqual(hooks[1].asg_name, 'myAutoscalingGroup')
+        self.assertEqual(hooks[1].default_result, 'CONTINUE')
+        self.assertEqual(hooks[1].notification_target_arn, 'arn:aws:sqs:us-east-1:111111111111:myQueue')
+        self.assertEqual(hooks[1].name, 'launching')
+        self.assertEqual(hooks[1].role_arn, 'arn:aws:iam::111111111111:role/myRole')
+        self.assertEqual(hooks[1].heartbeat_timeout, 7200)
 
 if __name__ == '__main__':
     unittest.main()
