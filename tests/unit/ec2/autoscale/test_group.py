@@ -976,5 +976,62 @@ class TestDeleteLifecycleHook(AWSMockServiceTestCase):
             'LifecycleHookName': 'launching',
         }, ignore_params_values=['Version'])
 
+class TestCompleteLifecycleAction(AWSMockServiceTestCase):
+    connection_class = AutoScaleConnection
+
+    def setUp(self):
+        super(TestCompleteLifecycleAction, self).setUp()
+
+    def default_body(self):
+        return b"""
+          <CompleteLifecycleActionResponse>
+            <CompleteLifecycleActionResult/>
+            <ResponseMetadata>
+              <RequestId>requestid</RequestId>
+            </ResponseMetadata>
+          </CompleteLifecycleActionResponse>
+        """
+
+    def test_autoscaling_group_complete_lifecycle_action(self):
+        self.set_http_response(status_code=200)
+        self.service_connection.complete_lifecycle_action(
+          "myAutoscalingGroup", "launching", "CONTINUE", "token")
+
+        self.assert_request_parameters({
+            'Action': 'CompleteLifecycleAction',
+            'AutoScalingGroupName': 'myAutoscalingGroup',
+            'LifecycleHookName': 'launching',
+            'LifecycleActionResult': 'CONTINUE',
+            'LifecycleActionToken': 'token',
+        }, ignore_params_values=['Version'])
+
+class TestRecordLifecycleActionHeartbeat(AWSMockServiceTestCase):
+    connection_class = AutoScaleConnection
+
+    def setUp(self):
+        super(TestRecordLifecycleActionHeartbeat, self).setUp()
+
+    def default_body(self):
+        return b"""
+          <RecordLifecycleActionHeartbeatResponse>
+            <RecordLifecycleActionHeartbeatResult/>
+            <ResponseMetadata>
+              <RequestId>requestid</RequestId>
+            </ResponseMetadata>
+          </RecordLifecycleActionHeartbeatResponse>
+        """
+
+    def test_autoscaling_group_record_lifecycle_action_heartbeat(self):
+        self.set_http_response(status_code=200)
+        self.service_connection.record_lifecycle_action_heartbeat(
+          "myAutoscalingGroup", "launching", "token")
+
+        self.assert_request_parameters({
+            'Action': 'RecordLifecycleActionHeartbeat',
+            'AutoScalingGroupName': 'myAutoscalingGroup',
+            'LifecycleHookName': 'launching',
+            'LifecycleActionToken': 'token',
+        }, ignore_params_values=['Version'])
+
 if __name__ == '__main__':
     unittest.main()
