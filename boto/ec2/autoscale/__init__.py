@@ -754,36 +754,58 @@ class AutoScaleConnection(AWSQueryConnection):
                            notification_metadata=None,
                            notification_target_arn=None, role_arn=None):
         """
-        Creates or updates a lifecycle hook for the specified Auto Scaling Group.
+        Create or update a lifecycle hook for the specified Auto Scaling Group.
 
-        A lifecycle hook tells Auto Scaling that you want to perform an action on an instance that is not actively in service; for example, either when the instance launches or before the instance terminates.
+        A lifecycle hook tells Auto Scaling that you want to perform an action
+        on an instance that is not actively in service; for example, either when
+        the instance launches or before the instance terminates.
 
         :type autoscale_group: str or
             :class:`boto.ec2.autoscale.group.AutoScalingGroup` object
-        :param autoscale_group: The Auto Scaling group to put the lifecycle hook on.
+        :param autoscale_group: The Auto Scaling group to put the lifecycle
+            hook on.
 
         :type hook_name: str
         :param hook_name: Name of lifecycle hook.
 
         :type default_result: str
-        :param default_result: Defines the action the Auto Scaling group should take when the lifecycle hook timeout elapses or if an unexpected failure occurs. The value for this parameter can be either CONTINUE or ABANDON. The default value for this parameter is ABANDON.
+        :param default_result: Defines the action the Auto Scaling group should
+            take when the lifecycle hook timeout elapses or if an unexpected
+            failure occurs. The value for this parameter can be either CONTINUE
+            or ABANDON.  The default value for this parameter is ABANDON.
 
         :type heartbeat_timeout: int
-        :param heartbeat_timeout: Defines the amount of time, in seconds, that can elapse before the lifecycle hook times out. When the lifecycle hook times out, Auto Scaling performs the action defined in the DefaultResult parameter. You can prevent the lifecycle hook from timing out by calling RecordLifecycleActionHeartbeat. The default value for this parameter is 3600 seconds (1 hour).
+        :param heartbeat_timeout: Defines the amount of time, in seconds, that
+            can elapse before the lifecycle hook times out. When the lifecycle
+            hook times out, Auto Scaling performs the action defined in the
+            DefaultResult parameter. You can prevent the lifecycle hook from
+            timing out by calling RecordLifecycleActionHeartbeat. The default
+            value for this parameter is 3600 seconds (1 hour).
 
         :type lifecycle_transition: str
-        :param lifecycle_transition: The instance state to which you want to attach the lifecycle hook. This parameter is required for new lifecycle hooks, but optional when updating existing hooks.
+        :param lifecycle_transition: The instance state to which you want to
+            attach the lifecycle hook. This parameter is required for new
+            lifecycle hooks, but optional when updating existing hooks.
 
         :type notification_metadata: str
-        :param notification_metadata: Contains additional information that you want to include any time Auto Scaling sends a message to the notification target.
+        :param notification_metadata: Contains additional information
+            that you want to include any time Auto Scaling sends a message
+            to the notification target.
 
         :type notification_target_arn: str
-        :param notification_target_arn: The ARN of the notification target that Auto Scaling will use to notify you when an instance is in the transition state for the lifecycle hook. This ARN target can be either an SQS queue or an SNS topic. This parameter is required for new lifecycle hooks, but optional when updating existing hooks.
+
+	:param notification_target_arn: The ARN of the notification target
+            that Auto Scaling will use to notify you when an instance is in
+            the transition state for the lifecycle hook. This ARN target can be
+            either an SQS queue or an SNS topic. This parameter is required for
+            new lifecycle hooks, but optional when updating existing hooks.
 
         :type role_arn: str
-        :param role_arn: The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target.  This parameter is required for new lifecycle hooks, but optional when updating existing hooks.
+        :param role_arn: The ARN of the IAM role that allows the Auto Scaling
+            group to publish to the specified notification target.
+            This parameter is required for new lifecycle hooks, but
+            optional when updating existing hooks.
         """
-
         asg_name = autoscale_group
         if isinstance(autoscale_group, AutoScalingGroup):
             asg_name = autoscale_group.name
@@ -809,16 +831,18 @@ class AutoScaleConnection(AWSQueryConnection):
         """
         Deletes the specified lifecycle hook.
 
-        If there are any outstanding lifecycle actions, they are completed first (ABANDON for launching instances, CONTINUE for terminating instances).
+        If there are any outstanding lifecycle actions, they are completed
+        first (ABANDON for launching instances, CONTINUE for terminating
+        instances).
 
         :type autoscale_group: str or
             :class:`boto.ec2.autoscale.group.AutoScalingGroup` object
-        :param autoscale_group: The Auto Scaling group to put the lifecycle hook on.
+        :param autoscale_group: The Auto Scaling group to put the lifecycle
+            hook on.
 
         :type hook_name: str
         :param hook_name: Name of lifecycle hook.
         """
-
         asg_name = autoscale_group
         if isinstance(autoscale_group, AutoScalingGroup):
             asg_name = autoscale_group.name
@@ -828,24 +852,30 @@ class AutoScaleConnection(AWSQueryConnection):
 
         return self.get_status('DeleteLifecycleHook', params)
 
-    def complete_lifecycle_action(self, autoscale_group, hook_name, action_result, action_token):
+    def complete_lifecycle_action(self, autoscale_group, hook_name,
+                                  action_result, action_token):
         """
-        Completes the lifecycle action for the associated token initiated under the given lifecycle hook with the specified result.
+        Completes the lifecycle action for the associated token initiated under
+        the given lifecycle hook with the specified result.
 
         :type autoscale_group: str or
             :class:`boto.ec2.autoscale.group.AutoScalingGroup` object
-        :param autoscale_group: The Auto Scaling group to put the lifecycle hook on.
+        :param autoscale_group: The Auto Scaling group to put the
+            lifecycle hook on.
 
         :type hook_name: str
         :param hook_name: Name of lifecycle hook.
 
         :type action_result: str
-        :param action_result: The action for the group to take. This parameter can be either CONTINUE or ABANDON.
+        :param action_result: The action for the group to take. This parameter
+            can be either CONTINUE or ABANDON.
 
         :type action_token: str
-        :param action_token: A token that uniquely identifies a specific lifecycle action associated with an instance. Auto Scaling sends this token to the notification target you specified when you created the lifecycle hook.
+        :param action_token: A token that uniquely identifies a specific
+            lifecycle action associated with an instance. Auto Scaling sends
+            this token to the notification target you specified when you
+            created the lifecycle hook.
         """
-
         asg_name = autoscale_group
         if isinstance(autoscale_group, AutoScalingGroup):
             asg_name = autoscale_group.name
@@ -857,21 +887,27 @@ class AutoScaleConnection(AWSQueryConnection):
 
         return self.get_status('CompleteLifecycleAction', params)
 
-    def record_lifecycle_action_heartbeat(self, autoscale_group, hook_name, action_token):
+    def record_lifecycle_action_heartbeat(self, autoscale_group, hook_name,
+                                          action_token):
         """
-        Records a heartbeat for the lifecycle action associated with a specific token. This extends the timeout by the length of time defined by the HeartbeatTimeout parameter of PutLifecycleHook.
+        Records a heartbeat for the lifecycle action associated with a specific
+        token. This extends the timeout by the length of time defined by the
+        HeartbeatTimeout parameter of PutLifecycleHook.
 
         :type autoscale_group: str or
             :class:`boto.ec2.autoscale.group.AutoScalingGroup` object
-        :param autoscale_group: The Auto Scaling group to put the lifecycle hook on.
+        :param autoscale_group: The Auto Scaling group to put the lifecycle
+            hook on.
 
         :type hook_name: str
         :param hook_name: Name of lifecycle hook.
 
         :type action_token: str
-        :param action_token: A token that uniquely identifies a specific lifecycle action associated with an instance. Auto Scaling sends this token to the notification target you specified when you created the lifecycle hook.
+        :param action_token: A token that uniquely identifies a specific
+            lifecycle action associated with an instance. Auto Scaling sends
+            this token to the notification target you specified when you
+            created the lifecycle hook.
         """
-
         asg_name = autoscale_group
         if isinstance(autoscale_group, AutoScalingGroup):
             asg_name = autoscale_group.name
@@ -897,10 +933,9 @@ class AutoScaleConnection(AWSQueryConnection):
 
         :type autoscale_group: str or
             :class:`boto.ec2.autoscale.group.AutoScalingGroup` object
-        :param autoscale_group: The Auto Scaling group to put the lifecycle hook on.
-
+        :param autoscale_group: The Auto Scaling group to put the lifecycle
+            hook on.
         """
-
         asg_name = autoscale_group
         if isinstance(autoscale_group, AutoScalingGroup):
             asg_name = autoscale_group.name
